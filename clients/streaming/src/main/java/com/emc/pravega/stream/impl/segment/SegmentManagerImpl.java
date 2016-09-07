@@ -58,11 +58,12 @@ public class SegmentManagerImpl implements SegmentManager, StreamController {
     public boolean createSegment(String name) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         FailingReplyProcessor replyProcessor = new FailingReplyProcessor() {
-            
+
             @Override
             public void connectionDropped() {
                 result.completeExceptionally(new ConnectionClosedException());
             }
+
             @Override
             public void wrongHost(WrongHost wrongHost) {
                 result.completeExceptionally(new NotImplementedException());
@@ -79,7 +80,7 @@ public class SegmentManagerImpl implements SegmentManager, StreamController {
             }
         };
         ClientConnection connection = getAndHandleExceptions(connectionFactory.establishConnection(endpoint, replyProcessor),
-                                                             RuntimeException::new);
+                RuntimeException::new);
         try {
             connection.send(new CreateSegment(name));
         } catch (ConnectionFailedException e) {
@@ -109,6 +110,11 @@ public class SegmentManagerImpl implements SegmentManager, StreamController {
             log.warn("Initial connection attempt failure. Suppressing.", e);
         }
         return new SegmentInputStreamImpl(result, 0);
+    }
+
+    @Override
+    public void close() {
+        connectionFactory.close();
     }
 
     @Override

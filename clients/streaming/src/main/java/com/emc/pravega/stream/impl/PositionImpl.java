@@ -17,12 +17,13 @@
  */
 package com.emc.pravega.stream.impl;
 
+import com.emc.pravega.stream.Position;
+import com.emc.pravega.stream.SegmentId;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-
-import com.emc.pravega.stream.Position;
-import com.emc.pravega.stream.SegmentId;
+import java.util.stream.Collectors;
 
 public class PositionImpl implements Position {
 
@@ -30,13 +31,34 @@ public class PositionImpl implements Position {
     private final Map<SegmentId, Long> ownedLogs;
     private final Map<SegmentId, Long> futureOwnedLogs;
 
-    PositionImpl(Map<SegmentId, Long> ownedLogs, Map<SegmentId, Long> futureOwnedLogs) {
+    public PositionImpl(Map<SegmentId, Long> ownedLogs, Map<SegmentId, Long> futureOwnedLogs) {
         this.ownedLogs = ownedLogs;
         this.futureOwnedLogs = futureOwnedLogs;
     }
 
-    Set<SegmentId> getOwnedSegments() {
+    @Override
+    public Set<SegmentId> getOwnedSegments() {
         return Collections.unmodifiableSet(ownedLogs.keySet());
+    }
+
+    @Override
+    public Map<SegmentId, Long> getOwnedSegmentsWithOffsets() {
+        return Collections.unmodifiableMap(ownedLogs);
+    }
+
+    @Override
+    public Set<SegmentId> getCompletedSegments() {
+        return ownedLogs.entrySet().stream().filter(x -> x.getValue() < 0).map(y -> y.getKey()).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Long getOffsetForOwnedSegment(SegmentId segmentId) {
+        return ownedLogs.get(segmentId);
+    }
+
+    @Override
+    public Set<SegmentId> getFutureOwnedSegments() {
+        return Collections.unmodifiableSet(futureOwnedLogs.keySet());
     }
 
     Long getOffsetForOwnedLog(SegmentId log) {
@@ -50,6 +72,10 @@ public class PositionImpl implements Position {
 
     public Map<SegmentId, Long> getFutureOwnedLogs() {
         return Collections.unmodifiableMap(futureOwnedLogs);
+    }
+
+    public Map<SegmentId, Long> getOwnedLogs() {
+        return Collections.unmodifiableMap(ownedLogs);
     }
 
 }

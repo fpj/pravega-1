@@ -23,6 +23,7 @@ import ch.qos.logback.classic.LoggerContext;
 import com.emc.pravega.cluster.Cluster;
 import com.emc.pravega.common.Exceptions;
 import com.emc.pravega.service.contracts.StreamSegmentStore;
+import com.emc.pravega.service.server.mocks.InMemoryServiceBuilder;
 import com.emc.pravega.service.server.store.ServiceBuilder;
 import com.emc.pravega.service.server.store.ServiceBuilderConfig;
 import com.emc.pravega.service.server.host.handler.PravegaConnectionListener;
@@ -44,7 +45,7 @@ public final class ServiceStarter {
     private ServiceStarter(ServiceBuilderConfig config) {
         this.serviceConfig = config;
         this.serviceBuilder = new DistributedLogServiceBuilder(this.serviceConfig);
-        //this.serviceBuilder = new InMemoryServiceBuilder(this.serviceConfig);
+//        this.serviceBuilder = new InMemoryServiceBuilder(this.serviceConfig);
     }
 
     private void start() {
