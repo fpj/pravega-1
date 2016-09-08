@@ -34,9 +34,9 @@ public class ServiceConfig extends ComponentConfig {
     public static final String PROPERTY_CONTAINER_COUNT = "containerCount";
     public static final String PROPERTY_THREAD_POOL_SIZE = "threadPoolSize";
     public static final String PROPERTY_LISTENING_PORT = "listeningPort";
-    private static final String PROPERTY_LISTENING_HOST = "listeningHost";
-    private static final String PROPERTY_ZK_TIMEOUT_MS = "zkTimeoutMS" ;
-    private static final String PROPERTY_ZK_CONNECTSTRING = "zkConnectString";
+    public static final String PROPERTY_LISTENING_HOST = "listeningHost";
+    public static final String PROPERTY_ZK_TIMEOUT_MS = "zkTimeoutMS" ;
+    public static final String PROPERTY_ZK_CONNECTSTRING = "zkConnectString";
     private int containerCount;
     private int threadPoolSize;
     private int listeningPort;

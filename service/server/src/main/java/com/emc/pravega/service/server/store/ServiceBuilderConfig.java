@@ -102,6 +102,10 @@ public class ServiceBuilderConfig {
         set(p, ServiceConfig.COMPONENT_CODE, ServiceConfig.PROPERTY_CONTAINER_COUNT, "1");
         set(p, ServiceConfig.COMPONENT_CODE, ServiceConfig.PROPERTY_THREAD_POOL_SIZE, "50");
         set(p, ServiceConfig.COMPONENT_CODE, ServiceConfig.PROPERTY_LISTENING_PORT, "12345");
+        set(p, ServiceConfig.COMPONENT_CODE, ServiceConfig.PROPERTY_LISTENING_HOST, "localhost");
+        set(p, ServiceConfig.COMPONENT_CODE, ServiceConfig.PROPERTY_ZK_TIMEOUT_MS, "5000");
+        set(p, ServiceConfig.COMPONENT_CODE, ServiceConfig.PROPERTY_ZK_CONNECTSTRING, "zk1:2181");
+
 
         // DistributedLog params.
         set(p, "dlog", "hostname", "zk1");
