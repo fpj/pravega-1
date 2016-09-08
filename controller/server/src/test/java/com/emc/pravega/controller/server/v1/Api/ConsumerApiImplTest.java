@@ -24,7 +24,7 @@ import com.emc.pravega.controller.store.host.HostStoreFactory;
 import com.emc.pravega.controller.store.host.InMemoryHostControllerStoreConfig;
 import com.emc.pravega.controller.store.stream.StreamMetadataStore;
 import com.emc.pravega.controller.store.stream.StreamStoreFactory;
-import com.emc.pravega.stream.Position;
+import com.emc.pravega.stream.PositionInternal;
 import com.emc.pravega.stream.ScalingPolicy;
 import com.emc.pravega.stream.SegmentId;
 import com.emc.pravega.stream.StreamConfiguration;
@@ -45,9 +45,9 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 /**
- * ConsumerImpl test
+ * ConsumerApiImpl test
  */
-public class ConsumerImplTest {
+public class ConsumerApiImplTest {
 
     private final String stream1 = "stream1";
     private final String stream2 = "stream2";
@@ -60,7 +60,7 @@ public class ConsumerImplTest {
     private final HostControllerStore hostStore = HostStoreFactory.createStore(HostStoreFactory.StoreType.InMemory,
             new InMemoryHostControllerStoreConfig().setHostContainers(hostContainerMap));
 
-    private final ConsumerImpl consumer = new ConsumerImpl(streamStore, hostStore);
+    private final ConsumerApiImpl consumer = new ConsumerApiImpl(streamStore, hostStore);
 
     @Before
     public void prepareStreamStore() {
@@ -96,7 +96,7 @@ public class ConsumerImplTest {
 
     @Test
     public void testMethods() throws InterruptedException, ExecutionException {
-        List<Position> positions;
+        List<PositionInternal> positions;
 
         positions = consumer.getPositions(stream1, 10, 3).get();
         assertEquals(2, positions.size());
@@ -120,8 +120,8 @@ public class ConsumerImplTest {
         assertEquals(1, positions.get(2).getFutureOwnedSegments().size());
 
 
-        Position newPosition = new PositionImpl(
-                Collections.singletonMap(new SegmentId(stream2, stream2 + 5, 5, 2, "localhost", 9090), 0L),
+        PositionInternal newPosition = new PositionImpl(
+                Collections.singletonMap(new SegmentId(stream2, stream2 + 5, 5, 2), 0L),
                 Collections.EMPTY_MAP);
         positions.set(2, newPosition);
         positions = consumer.updatePositions(stream2, positions).get();

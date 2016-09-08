@@ -30,7 +30,7 @@ import java.util.Set;
  */
 public class InMemoryStreamStore implements StreamMetadataStore {
 
-    Map<String, Stream> streams = new HashMap<>();
+    private final Map<String, Stream> streams = new HashMap<>();
 
     private Stream getStream(String name) {
         if (streams.containsKey(name)) {

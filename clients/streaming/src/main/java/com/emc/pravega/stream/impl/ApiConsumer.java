@@ -19,7 +19,9 @@ package com.emc.pravega.stream.impl;
 
 import com.emc.pravega.controller.stream.api.v1.ConsumerService;
 import com.emc.pravega.stream.ControllerApi;
-import com.emc.pravega.stream.Position;
+import com.emc.pravega.stream.PositionInternal;
+import com.emc.pravega.stream.SegmentId;
+import com.emc.pravega.stream.SegmentUri;
 import com.emc.pravega.stream.impl.model.ModelHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
@@ -43,17 +45,17 @@ public class ApiConsumer extends BaseClient implements ControllerApi.Consumer {
     }
 
     @Override
-    public CompletableFuture<List<Position>> getPositions(String stream, long timestamp, int count) {
+    public CompletableFuture<List<PositionInternal>> getPositions(String stream, long timestamp, int count) {
         //Use RPC client to invoke getPositions
         log.info("Invoke ConsumerService.Client.getPositions() for stream: {}, timestamp: {}, count: {}", stream, timestamp, count);
 
-        CompletableFuture<List<Position>> resultFinal = new CompletableFuture<>();
+        CompletableFuture<List<PositionInternal>> resultFinal = new CompletableFuture<>();
         CompletableFuture.runAsync(() -> {
             try {
                 //invoke RPC client
                 List<com.emc.pravega.controller.stream.api.v1.Position> result = client.getPositions(stream, timestamp, count);
                 //encode the result back to Model class
-                List<Position> resultModel = result.parallelStream().map(ModelHelper::encode)
+                List<PositionInternal> resultModel = result.stream().map(ModelHelper::encode)
                         .collect(Collectors.toList());
                 log.debug("Received the following data from the controller {}", result);
                 resultFinal.complete(resultModel);
@@ -66,20 +68,34 @@ public class ApiConsumer extends BaseClient implements ControllerApi.Consumer {
     }
 
     @Override
-    public CompletableFuture<List<Position>> updatePositions(String stream, List<Position> positions) {
+    public CompletableFuture<List<PositionInternal>> updatePositions(String stream, List<PositionInternal> positions) {
         //Use RPC client to invoke updatePositions
         log.info("Invoke ConsumerService.Client.updatePositions() for positions: {} ", positions);
 
-        CompletableFuture<List<Position>> resultFinal = new CompletableFuture<>();
+        CompletableFuture<List<PositionInternal>> resultFinal = new CompletableFuture<>();
         CompletableFuture.runAsync(() -> {
             try {
                 //invoke RPC client
                 List<com.emc.pravega.controller.stream.api.v1.Position> result =
                         client.updatePositions(stream, positions.stream().map(p -> ModelHelper.decode(p)).collect(Collectors.toList()));
                 //encode the result back to Model class
-                List<Position> resultModel = result.parallelStream().map(ModelHelper::encode).collect(Collectors.toList());
+                List<PositionInternal> resultModel = result.stream().map(ModelHelper::encode).collect(Collectors.toList());
                 log.debug("Received the following data from the controller {}", result);
                 resultFinal.complete(resultModel);
+            } catch (TException e) {
+                resultFinal.completeExceptionally(e);
+            }
+        }, service);
+
+        return resultFinal;
+    }
+
+    @Override
+    public CompletableFuture<SegmentUri> getURI(SegmentId id) {
+        CompletableFuture<SegmentUri> resultFinal = new CompletableFuture<>();
+        CompletableFuture.runAsync(() -> {
+            try {
+                resultFinal.complete(ModelHelper.encode(client.getURI(ModelHelper.decode(id))));
             } catch (TException e) {
                 resultFinal.completeExceptionally(e);
             }
