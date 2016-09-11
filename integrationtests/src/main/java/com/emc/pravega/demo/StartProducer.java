@@ -17,9 +17,7 @@
  */
 package com.emc.pravega.demo;
 
-import com.emc.pravega.stream.Producer;
-import com.emc.pravega.stream.ProducerConfig;
-import com.emc.pravega.stream.Stream;
+import com.emc.pravega.stream.*;
 import com.emc.pravega.stream.impl.ApiAdmin;
 import com.emc.pravega.stream.impl.ApiConsumer;
 import com.emc.pravega.stream.impl.ApiProducer;
@@ -51,5 +49,8 @@ public class StartProducer {
             producer.publish(null, testString + i + "\n");
         }
         producer.flush();
+
+        Consumer<String> consumer = stream.createConsumer(new JavaSerializer<>(),new ConsumerConfig());
+        System.out.println(consumer.getNextEvent(5000));
     }
 }
