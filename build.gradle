@@ -190,6 +190,13 @@ project('integrationtests') {
         standardInput = System.in
     }
 
+
+
+    task startConsumer(type: JavaExec) {
+        main = "com.emc.pravega.demo.StartConsumer"
+        classpath = sourceSets.main.runtimeClasspath
+        standardInput = System.in
+    }
 }
 
 

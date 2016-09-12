@@ -77,6 +77,18 @@ public class SingleSegmentStreamManagerImpl implements StreamManager {
 
     @Override
     public Stream getStream(String streamName) {
+        Stream retVal = created.get(streamName);
+        if (retVal == null) {
+            StreamSegments segments = FutureHelpers.getAndHandleExceptions(
+                    apiProducer.getCurrentSegments(streamName), RuntimeException::new);
+
+            SegmentId singleSegment = segments.getSegments().get(0);
+            SegmentUri uri = FutureHelpers.getAndHandleExceptions(apiProducer.getURI(singleSegment), RuntimeException::new);
+
+            Stream stream = new SingleSegmentStreamImpl(scope, streamName,null , singleSegment, uri.getEndpoint(), uri.getPort());
+            created.put(streamName, stream);
+
+        }
         return created.get(streamName);
     }
 
