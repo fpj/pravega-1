@@ -369,7 +369,7 @@ public class ContainerReadIndexTests {
     @Test
     public void testStorageFailedReads() {
         // Create all segments (Storage and Metadata).
-        @Cleanup
+        //@Cleanup
         TestContext context = new TestContext();
         ArrayList<Long> segmentIds = createSegments(context);
         createSegmentsInStorage(context);

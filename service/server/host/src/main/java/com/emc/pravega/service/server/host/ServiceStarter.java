@@ -27,6 +27,7 @@ import com.emc.pravega.service.server.store.ServiceBuilder;
 import com.emc.pravega.service.server.store.ServiceBuilderConfig;
 import com.emc.pravega.service.server.host.handler.PravegaConnectionListener;
 import org.slf4j.LoggerFactory;
+import com.emc.pravega.service.server.mocks.InMemoryServiceBuilder;
 
 import java.time.Duration;
 
@@ -42,8 +43,8 @@ public final class ServiceStarter {
 
     private ServiceStarter(ServiceBuilderConfig config) {
         this.serviceConfig = config;
-        this.serviceBuilder = new DistributedLogServiceBuilder(this.serviceConfig);
-        //this.serviceBuilder = new InMemoryServiceBuilder(this.serviceConfig);
+        //this.serviceBuilder = new DistributedLogServiceBuilder(this.serviceConfig);
+        this.serviceBuilder = new InMemoryServiceBuilder(this.serviceConfig);
     }
 
     private void start() {
