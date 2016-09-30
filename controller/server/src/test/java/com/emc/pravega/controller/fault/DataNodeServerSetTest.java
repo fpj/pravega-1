@@ -22,6 +22,7 @@ import com.twitter.common.net.pool.DynamicHostSet;
 import com.twitter.common.zookeeper.Group;
 import com.twitter.common.zookeeper.ServerSet;
 import com.twitter.thrift.ServiceInstance;
+import lombok.extern.log4j.Log4j;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
 import org.junit.Assert;
@@ -38,6 +39,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.junit.Assert.assertTrue;
 
+@Log4j
 public class DataNodeServerSetTest {
 
     private static final String ZK_URL = "zk://localhost:2182";
@@ -45,7 +47,7 @@ public class DataNodeServerSetTest {
     private TestingServer zkTestServer;
 
     private DynamicHostSet.HostChangeMonitor<ServiceInstance> serverSetMonitor = (list) -> {
-        System.out.println("===> " + Thread.currentThread().getName() + "Host List got modified:" + list);
+        log.info(Thread.currentThread().getName() + ":Modified host list:" + list);
         serverSetBuffer.offer(list);
     };
 
@@ -56,12 +58,12 @@ public class DataNodeServerSetTest {
 
     @After
     public void stopZookeeper() throws IOException {
+
         zkTestServer.stop();
     }
 
     @Test
-    public void testMemberShipChanges() throws DynamicHostSet.MonitorException,
-            InterruptedException, ServerSet.UpdateException, Group.JoinException {
+    public void testMemberShipChanges() throws Exception {
 
         DataNodeServerSet nodeSet = createDataNodeSet(ZK_URL, serverSetMonitor);
 
@@ -76,7 +78,7 @@ public class DataNodeServerSetTest {
 
         //Create a separate nodeSet and register HostC
         DynamicHostSet.HostChangeMonitor<ServiceInstance> serverSetMonitor2 = (list) -> {
-            System.out.println("===> " + Thread.currentThread().getName() + "Host list got modified:" + list);
+            log.info(Thread.currentThread().getName() + " Modified hostlist:" + list);
         };
         DataNodeServerSet nodeSetInstance2 = createDataNodeSet(ZK_URL, serverSetMonitor2);
 
@@ -86,12 +88,15 @@ public class DataNodeServerSetTest {
         statusC.leave(); //remove endpoint from serverset
         assertTrue(checkhostName(Arrays.asList("HostA", "HostB")));
 
-        ServerSet.EndpointStatus statusD = joinServerSet(nodeSetInstance2, "HostD", 1234, 3);
+        ServerSet.EndpointStatus statusD = joinServerSet(nodeSetInstance2, "HostD", 1234, 4);
         checkhostName(Arrays.asList("HostA", "HostB", "HostD"));
 
-        close(nodeSetInstance2); //simulate a host going down
+        nodeSetInstance2.close(); //simulate a host going down
         assertTrue(checkhostName(Arrays.asList("HostA", "HostB")));
+
+        nodeSet.close();
     }
+
 
     private boolean checkhostName(final List<String> hostList) throws InterruptedException {
         long count = serverSetBuffer.take().stream().distinct()
@@ -106,10 +111,6 @@ public class DataNodeServerSetTest {
                 .count() == hostList.size();
     }
 
-    private void close(DataNodeServerSet nodeSet) {
-        nodeSet.getZkClient().close();
-    }
-
     private ServerSet.EndpointStatus joinServerSet(DataNodeServerSet nodeSet, String hostName,
                                                    int port, int id) throws Group.JoinException, InterruptedException {
         ServerSet.EndpointStatus status = null;
@@ -121,7 +122,6 @@ public class DataNodeServerSetTest {
     private DataNodeServerSet createDataNodeSet(String zkURI, DynamicHostSet.HostChangeMonitor<ServiceInstance> monitor)
             throws DynamicHostSet.MonitorException {
         DataNodeServerSet nodeSet = DataNodeServerSet.of(URI.create(zkURI), 10000);
-        System.out.println("node Set created");
         nodeSet.getServerSet().watch(serverSetMonitor);
         return nodeSet;
     }
