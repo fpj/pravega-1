@@ -64,7 +64,7 @@ public class PravegaNodeSet {
      * @param monitor  - Behaviour of the HostChange monitor call back. This will be invoked when a node/Endpoint leaves /joins the serverSet
      * @return - Return a PravegaNodeSet instance.
      */
-    public static PravegaNodeSet of(final URI zkURI, NodeType nodeType,
+    public static PravegaNodeSet of(final URI zkURI, final NodeType nodeType,
                                     final Consumer<Set<ServiceInstance>> monitor) {
         String zkPath = new StringBuilder(zkURI.getPath()).append("/").append(CLUSTER_ZK_PATH).toString();
         ZooKeeperClient client = new ZooKeeperClient(Amount.of(ZK_SESSION_TIMEOUT, Time.MILLISECONDS),

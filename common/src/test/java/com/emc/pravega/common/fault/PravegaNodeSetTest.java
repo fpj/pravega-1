@@ -95,10 +95,9 @@ public class PravegaNodeSetTest {
         nodeSet.close();
     }
 
-
     private boolean checkhostName(final List<String> hostList) throws InterruptedException {
         long count = serverSetBuffer.take().stream().distinct()
-                .filter(list -> hostList.contains(list.getServiceEndpoint().getHost()))
+                .filter(ep -> hostList.contains(ep.getServiceEndpoint().getHost()))
                 .count();
         if (count == hostList.size()) {
             return true;
