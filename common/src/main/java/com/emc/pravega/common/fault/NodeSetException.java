@@ -15,17 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.emc.pravega.controller.fault;
+package com.emc.pravega.common.fault;
 
 /**
- * Define the type of Node taking part in the ServerSet
- * Controller - Host Controller
- * Data - Pravega Data Node.
+ * Created by root on 10/4/16.
  */
-public enum NodeType {
+public class NodeSetException extends Exception {
 
-    CONTROLLER,
-    DATA
 
-    //TODO: ensure hostname and port configuration are associated with the NodeType.
+    public NodeSetException(String message) {
+        super(message);
+    }
+
+    public NodeSetException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public NodeSetException(Throwable cause) {
+        super(cause);
+    }
+
+
 }

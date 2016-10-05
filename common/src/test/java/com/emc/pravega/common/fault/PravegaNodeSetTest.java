@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.emc.pravega.controller.fault;
+package com.emc.pravega.common.fault;
 
 import com.google.common.collect.ImmutableSet;
 import com.twitter.common.net.pool.DynamicHostSet;
@@ -23,6 +23,7 @@ import com.twitter.common.zookeeper.Group;
 import com.twitter.common.zookeeper.ServerSet;
 import com.twitter.thrift.ServiceInstance;
 import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
 import org.junit.Assert;
@@ -39,7 +40,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.junit.Assert.assertTrue;
 
-@Log4j
+@Slf4j
 public class PravegaNodeSetTest {
 
     private static final String ZK_URL = "zk://localhost:2181";
