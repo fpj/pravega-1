@@ -17,12 +17,8 @@
  */
 package com.emc.pravega.common.fault;
 
-import com.google.common.collect.ImmutableSet;
-import com.twitter.common.net.pool.DynamicHostSet;
-import com.twitter.common.zookeeper.Group;
 import com.twitter.common.zookeeper.ServerSet;
 import com.twitter.thrift.ServiceInstance;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.test.TestingServer;
 import org.junit.After;
@@ -31,12 +27,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.assertTrue;
 
@@ -44,13 +40,14 @@ import static org.junit.Assert.assertTrue;
 public class PravegaNodeSetTest {
 
     private static final String ZK_URL = "zk://localhost:2181";
-    private LinkedBlockingQueue<ImmutableSet<ServiceInstance>> serverSetBuffer = new LinkedBlockingQueue<>();
+    private LinkedBlockingQueue<Set<ServiceInstance>> serverSetBuffer = new LinkedBlockingQueue<>();
     private TestingServer zkTestServer;
 
-    private DynamicHostSet.HostChangeMonitor<ServiceInstance> serverSetMonitor = (list) -> {
+    private Consumer<Set<ServiceInstance>> serverSetMonitor = (list) -> {
         log.info(Thread.currentThread().getName() + ":Modified host list:" + list);
         serverSetBuffer.offer(list);
     };
+
 
     @Before
     public void startZookeeper() throws Exception {
@@ -66,30 +63,30 @@ public class PravegaNodeSetTest {
     @Test
     public void testMemberShipChanges() throws Exception {
 
-        PravegaNodeSet nodeSet = createDataNodeSet(ZK_URL, NodeType.DATA, serverSetMonitor);
+        PravegaNodeSet nodeSet = PravegaNodeSet.of(URI.create(ZK_URL), NodeType.DATA, serverSetMonitor);
 
-        ImmutableSet<ServiceInstance> result = serverSetBuffer.take();
+        Set<ServiceInstance> result = serverSetBuffer.take();
         Assert.assertEquals(0, result.size());
 
-        joinServerSet(nodeSet, "HostA", 1234, 1);
+        nodeSet.joinServerSet("HostA", 1234, 1);
         assertTrue(checkhostName(Arrays.asList("HostA")));
 
-        joinServerSet(nodeSet, "HostB", 1235, 2);
+        nodeSet.joinServerSet("HostB", 1235, 2);
         assertTrue(checkhostName(Arrays.asList("HostA", "HostB")));
 
         //Create a separate nodeSet and register HostC
-        DynamicHostSet.HostChangeMonitor<ServiceInstance> serverSetMonitor2 = (list) -> {
+        Consumer<Set<ServiceInstance>> serverSetMonitor2 = (list) -> {
             log.info(Thread.currentThread().getName() + " Modified hostlist:" + list);
         };
-        PravegaNodeSet nodeSetInstance2 = createDataNodeSet(ZK_URL, NodeType.CONTROLLER, serverSetMonitor2);
+        PravegaNodeSet nodeSetInstance2 = PravegaNodeSet.of(URI.create(ZK_URL), NodeType.CONTROLLER, serverSetMonitor2);
 
-        ServerSet.EndpointStatus statusC = joinServerSet(nodeSetInstance2, "HostC", 1234, 3);
+        ServerSet.EndpointStatus statusC = nodeSetInstance2.joinServerSet("HostC", 1234, 3);
         checkhostName(Arrays.asList("HostA", "HostB", "HostC"));
 
         statusC.leave(); //remove endpoint from serverset
         assertTrue(checkhostName(Arrays.asList("HostA", "HostB")));
 
-        ServerSet.EndpointStatus statusD = joinServerSet(nodeSetInstance2, "HostD", 1234, 4);
+        ServerSet.EndpointStatus statusD = nodeSetInstance2.joinServerSet("HostD", 1234, 4);
         checkhostName(Arrays.asList("HostA", "HostB", "HostD"));
 
         nodeSetInstance2.close(); //simulate a host going down
@@ -112,18 +109,4 @@ public class PravegaNodeSetTest {
                 .count() == hostList.size();
     }
 
-    private ServerSet.EndpointStatus joinServerSet(PravegaNodeSet nodeSet, String hostName,
-                                                   int port, int id) throws Group.JoinException, InterruptedException {
-        ServerSet.EndpointStatus status = null;
-        status = nodeSet.getServerSet()
-                .join(InetSocketAddress.createUnresolved(hostName, port), Collections.EMPTY_MAP, id);
-        return status;
-    }
-
-    private PravegaNodeSet createDataNodeSet(String zkURI, NodeType type, DynamicHostSet.HostChangeMonitor<ServiceInstance> monitor)
-            throws DynamicHostSet.MonitorException {
-        PravegaNodeSet nodeSet = PravegaNodeSet.of(URI.create(zkURI), type);
-        nodeSet.getServerSet().watch(serverSetMonitor);
-        return nodeSet;
-    }
 }
