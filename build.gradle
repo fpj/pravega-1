@@ -232,6 +232,9 @@ project('controller:server') {
         compile group: 'com.twitter.common', name: 'base', version: '0.0.114'
         compile group: 'org.apache.zookeeper', name: 'zookeeper', version: '3.5.1-alpha'
         testCompile group: 'org.apache.curator', name: 'curator-test', version: '3.2.0'
+        // https://mvnrepository.com/artifact/org.apache.curator/curator-recipes
+        compile group: 'org.apache.curator', name: 'curator-recipes', version: '2.11.0'
+
     }
 }
 

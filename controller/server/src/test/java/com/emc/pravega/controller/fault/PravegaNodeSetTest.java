@@ -40,9 +40,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import static org.junit.Assert.assertTrue;
 
 @Log4j
-public class DataNodeServerSetTest {
+public class PravegaNodeSetTest {
 
-    private static final String ZK_URL = "zk://localhost:2182";
+    private static final String ZK_URL = "zk://localhost:2181";
     private LinkedBlockingQueue<ImmutableSet<ServiceInstance>> serverSetBuffer = new LinkedBlockingQueue<>();
     private TestingServer zkTestServer;
 
@@ -65,7 +65,7 @@ public class DataNodeServerSetTest {
     @Test
     public void testMemberShipChanges() throws Exception {
 
-        DataNodeServerSet nodeSet = createDataNodeSet(ZK_URL, serverSetMonitor);
+        PravegaNodeSet nodeSet = createDataNodeSet(ZK_URL, NodeType.DATA, serverSetMonitor);
 
         ImmutableSet<ServiceInstance> result = serverSetBuffer.take();
         Assert.assertEquals(0, result.size());
@@ -80,7 +80,7 @@ public class DataNodeServerSetTest {
         DynamicHostSet.HostChangeMonitor<ServiceInstance> serverSetMonitor2 = (list) -> {
             log.info(Thread.currentThread().getName() + " Modified hostlist:" + list);
         };
-        DataNodeServerSet nodeSetInstance2 = createDataNodeSet(ZK_URL, serverSetMonitor2);
+        PravegaNodeSet nodeSetInstance2 = createDataNodeSet(ZK_URL, NodeType.CONTROLLER, serverSetMonitor2);
 
         ServerSet.EndpointStatus statusC = joinServerSet(nodeSetInstance2, "HostC", 1234, 3);
         checkhostName(Arrays.asList("HostA", "HostB", "HostC"));
@@ -111,7 +111,7 @@ public class DataNodeServerSetTest {
                 .count() == hostList.size();
     }
 
-    private ServerSet.EndpointStatus joinServerSet(DataNodeServerSet nodeSet, String hostName,
+    private ServerSet.EndpointStatus joinServerSet(PravegaNodeSet nodeSet, String hostName,
                                                    int port, int id) throws Group.JoinException, InterruptedException {
         ServerSet.EndpointStatus status = null;
         status = nodeSet.getServerSet()
@@ -119,9 +119,9 @@ public class DataNodeServerSetTest {
         return status;
     }
 
-    private DataNodeServerSet createDataNodeSet(String zkURI, DynamicHostSet.HostChangeMonitor<ServiceInstance> monitor)
+    private PravegaNodeSet createDataNodeSet(String zkURI, NodeType type, DynamicHostSet.HostChangeMonitor<ServiceInstance> monitor)
             throws DynamicHostSet.MonitorException {
-        DataNodeServerSet nodeSet = DataNodeServerSet.of(URI.create(zkURI), 10000);
+        PravegaNodeSet nodeSet = PravegaNodeSet.of(URI.create(zkURI), type);
         nodeSet.getServerSet().watch(serverSetMonitor);
         return nodeSet;
     }
